@@ -12,3 +12,7 @@ env_weight = float(env_weight)
 
 print(f'PERIOD: {sma_period}, WEIGHT: {env_weight}')
 print(f'type: {type(sma_period)}, type: {type(env_weight)}')
+
+
+async def main():
+    """ main """

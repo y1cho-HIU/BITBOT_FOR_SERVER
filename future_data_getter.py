@@ -11,7 +11,7 @@ class FutureDataGetter:
         try:
             params = {
                 'symbol': 'XRPUSDT',
-                'interval': '5m',
+                'interval': '1m',
                 'limit': 2
             }
             response = requests.get(self.base_url + self.kline_endpoint, params=params)
@@ -40,10 +40,10 @@ class FutureDataGetter:
         candlestick_data = self.__get_futures_candlestick_data()
         if candlestick_data is not None:
             return {
-                "time": candlestick_data[-1][0],
-                "open": float(candlestick_data[-1][1]),
-                "close": float(candlestick_data[-1][4]),
-                "volume": float(candlestick_data[-1][5])
+                "time": candlestick_data[0][0],
+                "open": float(candlestick_data[0][1]),
+                "close": float(candlestick_data[0][4]),
+                "volume": float(candlestick_data[0][5])
             }
 
     def get_book_info(self):
@@ -55,5 +55,5 @@ class FutureDataGetter:
                 'askPrice': ticker_data['askPrice']
             }
 
-dg = FutureDataGetter().get_book_info()
-print(dg)
+#dg = FutureDataGetter().get_book_info()
+#print(dg)

@@ -15,11 +15,11 @@ class Strategy:
         :param coin_data: [{time, open, close, volume}, ]
         :return: now_sma for strategy
         """
-        close_list = [item['close'] for item in coin_data]
+        close_list = [data['close'] for data in coin_data]
         return round(sum(close_list) / len(close_list), 4)
 
     @staticmethod
-    def calc_rrr(now_sma, env, rate):
+    def _calc_rrr(now_sma, env, rate):
         return round(((rate + 1) * env - now_sma) / rate, 4)
 
     def set_now_position(self, position):
@@ -35,8 +35,8 @@ class Strategy:
         now_price = coin_data[-1]['close']
         env_up = round(now_sma * (1 + self.env_weight), 4)
         env_down = round(now_sma * (1 - self.env_weight), 4)
-        rrr_up = self.calc_rrr(env_up, now_sma, self.rrr_rate)
-        rrr_down = self.calc_rrr(env_down, now_sma, self.rrr_rate)
+        rrr_up = self._calc_rrr(env_up, now_sma, self.rrr_rate)
+        rrr_down = self._calc_rrr(env_down, now_sma, self.rrr_rate)
 
         if self.now_position == pub.POS_OUT:
             if now_price <= env_down:

@@ -25,3 +25,12 @@ class MockAccount:
         self.trading_count += 1
         self.now_position = pub.POS_OUT
         self.buy_price = -1
+
+    def display_win_rate(self):
+        if self.trading_count == 0:
+            print("trading count is 0.")
+        else:
+            print(f'win_rate = {round(self.win_count / self.trading_count * 100, 4)}')
+
+    def display_state(self):
+        print(f'POS : {self.now_position}, BUY_PRICE : {self.buy_price}')
