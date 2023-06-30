@@ -1,3 +1,6 @@
+import datetime
+import pprint
+
 import params_public as pub
 
 
@@ -7,6 +10,8 @@ class MockAccount:
         self.win_count = 0
         self.trading_count = 0
         self.now_position = pub.POS_OUT
+        self.trading_info = []
+        self.total_profit_rate = 1
 
     def pos_in(self, position, price):
         """ interface """
@@ -15,16 +20,32 @@ class MockAccount:
 
     def pos_out(self, price):
         """ interface """
+        profit = -1
         if self.now_position == pub.POS_LONG:
+            long_profit = (price - self.buy_price) / self.buy_price
+            profit = long_profit
+            self.total_profit_rate = self.total_profit_rate * (1 + long_profit)
             if self.buy_price < price:
                 self.win_count += 1
         elif self.now_position == pub.POS_SHORT:
+            short_profit = (self.buy_price - price) / self.buy_price
+            profit = short_profit
+            self.total_profit_rate = self.total_profit_rate * (1 + short_profit)
             if self.buy_price > price:
                 self.win_count += 1
+
+        self.trading_info.append({'time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                  'position': self.now_position,
+                                  'buy_price': self.buy_price,
+                                  'sell_price': price,
+                                  'profit': profit})
 
         self.trading_count += 1
         self.now_position = pub.POS_OUT
         self.buy_price = -1
+
+    def display_trading_info(self):
+        pprint.pprint(self.trading_info)
 
     def display_win_rate(self):
         if self.trading_count == 0:

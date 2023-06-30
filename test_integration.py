@@ -50,7 +50,7 @@ def make_coin_data():
 
 def log_trading_info(position, price):
     """ time, position, price"""
-    trading_info.append({"time": datetime.datetime.now(),
+    trading_info.append({"time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                          "position": position,
                          "price": price})
 
@@ -97,6 +97,10 @@ async def display_trading():
     pprint.pprint(trading_info)
 
 
+async def display_trading_info_in_class():
+    myAccount.display_trading_info()
+
+
 async def display_win_rate():
     """ get win_rate """
     myAccount.display_win_rate()
@@ -104,6 +108,7 @@ async def display_win_rate():
 
 async def display_now_state():
     myAccount.display_state()
+    myStrategy.display_target_price()
 
 
 async def display_coin_data():

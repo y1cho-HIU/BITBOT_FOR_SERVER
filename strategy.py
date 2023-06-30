@@ -80,3 +80,7 @@ class Strategy:
         signal is False -> nothing
         """
         return signal, next_position
+
+    def display_target_price(self):
+        print(f'target_price : {self.target_price} \t loss_price : {self.loss_price}')
+
