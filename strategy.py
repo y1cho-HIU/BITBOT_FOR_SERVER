@@ -1,13 +1,13 @@
 import params_private as prv
 import params_public as pub
+import statistics
 
 
 class Strategy:
-    def __init__(self, sma_period=prv.sma_period, env_weight=prv.env_weight, rrr_rate=prv.rrr_rate):
-        self.sma_period = sma_period
-        self.env_weight = env_weight
-        self.rrr_rate = rrr_rate
+    def __init__(self):
         self.now_position = pub.POS_OUT
+        self.target_price = -1
+        self.loss_price = -1
 
     @staticmethod
     def get_sma(coin_data):
@@ -22,9 +22,26 @@ class Strategy:
     def _calc_rrr(now_sma, env, rate):
         return round(((rate + 1) * env - now_sma) / rate, 4)
 
+    @staticmethod
+    def get_std_dev(coin_data):
+        close_list = [data['close'] for data in coin_data]
+        return round(statistics.stdev(close_list), 6)
+
     def set_now_position(self, position):
         """ use in operator class """
         self.now_position = position
+
+    def set_target_price(self, position, now_sma, env_price):
+        if position == pub.POS_LONG:
+            self.target_price = now_sma
+            self.loss_price = env_price - (now_sma - env_price) / prv.rrr_rate
+        elif position == pub.POS_SHORT:
+            self.target_price = now_sma
+            self.loss_price = env_price + (now_sma - env_price) / prv.rrr_rate
+
+    def set_target_price_out(self):
+        self.target_price = -1
+        self.loss_price = -1
 
     def envelope_strategy(self, coin_data):
         """ default signal, next_position -> not change """
@@ -32,29 +49,31 @@ class Strategy:
         next_position = self.now_position
 
         now_sma = self.get_sma(coin_data)
+        std_dev = self.get_std_dev(coin_data)
         now_price = coin_data[-1]['close']
-        env_up = round(now_sma * (1 + self.env_weight), 4)
-        env_down = round(now_sma * (1 - self.env_weight), 4)
-        rrr_up = self._calc_rrr(env_up, now_sma, self.rrr_rate)
-        rrr_down = self._calc_rrr(env_down, now_sma, self.rrr_rate)
+        env_up = round(now_sma + (std_dev * prv.env_weight), 4)
+        env_down = round(now_sma - (std_dev * prv.env_weight), 4)
 
         if self.now_position == pub.POS_OUT:
             if now_price <= env_down:
                 next_position = pub.POS_LONG
                 signal = True
-
+                self.set_target_price(pub.POS_LONG, now_sma, env_down)
             if now_price >= env_up:
                 next_position = pub.POS_SHORT
                 signal = True
+                self.set_target_price(pub.POS_SHORT, now_sma, env_up)
 
         elif self.now_position == pub.POS_LONG:
-            if (now_price >= now_sma) | (now_price <= rrr_down):
+            if (now_price >= self.target_price) | (now_price <= self.loss_price):
                 next_position = pub.POS_OUT
                 signal = True
+                self.set_target_price_out()
         elif self.now_position == pub.POS_SHORT:
-            if (now_price <= now_sma) | (now_price >= rrr_up):
+            if (now_price <= self.target_price) | (now_price >= self.loss_price):
                 next_position = pub.POS_OUT
                 signal = True
+                self.set_target_price_out()
 
         """
         signal is True -> trading

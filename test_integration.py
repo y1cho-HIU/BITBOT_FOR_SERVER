@@ -1,5 +1,6 @@
 import datetime
 import pprint
+import statistics
 
 import params_public as pub
 import params_private as prv
@@ -14,10 +15,11 @@ dataGetter = future_data_getter.FutureDataGetter()
 myStrategy = strategy.Strategy()
 myAccount = account.MockAccount()
 
-coin_data = []
+coin_data = dataGetter.get_info_period()
 trading_info = []
 signal = False
 next_position = pub.POS_OUT
+start_time = None
 
 
 def execute_trading():
@@ -80,10 +82,12 @@ def trading_order():
 
 async def auto_trade():
     print(f'TRADING START:: {datetime.datetime.now()}')
+    global start_time
+    start_time = datetime.datetime.now()
     try:
         while True:
             execute_trading()
-            await asyncio.sleep(60)
+            await asyncio.sleep(300)
     except KeyboardInterrupt:
         print(f'STOP:: {datetime.datetime.now()}')
 
@@ -98,11 +102,6 @@ async def display_win_rate():
     myAccount.display_win_rate()
 
 
-async def display_sma():
-    close_list = [data['close'] for data in coin_data]
-    print(round(sum(close_list) / len(close_list), 4))
-
-
 async def display_now_state():
     myAccount.display_state()
 
@@ -111,10 +110,27 @@ async def display_coin_data():
     pprint.pprint(coin_data)
 
 
+async def display_start_time():
+    global start_time
+    print(f'START TIME : {start_time}')
+    print(f'NOW   TIME : {datetime.datetime.now()}')
+
+
+async def display_statistics():
+    close_list = [data['close'] for data in coin_data]
+    sma = round(sum(close_list) / len(close_list), 4)
+    std_dev = round(statistics.stdev(close_list), 6)
+    env_up = round(sma + (std_dev * prv.env_weight), 4)
+    env_down = round(sma - (std_dev * prv.env_weight), 4)
+
+    print(f'SMA : {sma} \t 표준편차 : {std_dev} \t ENV_UP : {env_up} \t ENV_DOWN : {env_down}')
+
+
 async def display_help():
     print("############# help cmd #############")
+    print("# display start time \t\t --press time or t")
     print("# display trading info\t\t --press info or i")
-    print("# display now sma info\t\t --press sma or s")
+    print("# display statistic info\t\t --press stat or s")
     print("# display win rate info\t\t --press win or w")
     print("# display coin data info\t --press coin or c")
     print("# quit command \t\t\t --press quit or q")
@@ -125,14 +141,16 @@ async def check_keyboard_input():
         key = await asyncio.get_event_loop().run_in_executor(None, input, "cmd (press help or h): ")
         if key == "info" or key == "i":
             await display_trading()
-        elif key == "sma" or key == "s":
-            await display_sma()
+        elif key == "stat" or key == "s":
+            await display_statistics()
         elif key == "win" or key == "w":
             await display_win_rate()
         elif key == "state" or key == "n":
             await display_now_state()
         elif key == "coin" or key == "c":
             await display_coin_data()
+        elif key == "time" or key == "t":
+            await display_start_time()
         elif key == "help" or key == "h":
             await display_help()
         elif key == "quit" or key == "q":

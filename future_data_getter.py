@@ -1,5 +1,7 @@
-import requests
+import pprint
 
+import requests
+import params_private as prv
 
 class FutureDataGetter:
     def __init__(self):
@@ -7,12 +9,12 @@ class FutureDataGetter:
         self.kline_endpoint = '/fapi/v1/klines'
         self.book_endpoint = '/fapi/v1/ticker/bookTicker'
 
-    def __get_futures_candlestick_data(self):
+    def __get_futures_candlestick_data(self, limit=2):
         try:
             params = {
                 'symbol': 'XRPUSDT',
-                'interval': '1m',
-                'limit': 2
+                'interval': '5m',
+                'limit': limit
             }
             response = requests.get(self.base_url + self.kline_endpoint, params=params)
             response.raise_for_status()
@@ -46,6 +48,16 @@ class FutureDataGetter:
                 "volume": float(candlestick_data[0][5])
             }
 
+    def get_info_period(self):
+        candlestick_data = self.__get_futures_candlestick_data(limit=prv.sma_period + 1)
+        coin_list = [{"time": data[0],
+                      "open": float(data[1]),
+                      "close": float(data[4]),
+                      "volume": float(data[5])}
+                     for data in candlestick_data]
+        coin_list = coin_list[:-2]
+        return coin_list
+
     def get_book_info(self):
         """ interface """
         ticker_data = self.__get_futures_ticker()
@@ -57,3 +69,13 @@ class FutureDataGetter:
 
 #dg = FutureDataGetter().get_book_info()
 #print(dg)
+"""
+dg = FutureDataGetter()
+pdg = dg.get_info_period()
+idg = dg.get_info()
+
+print(len(pdg))
+pprint.pprint(pdg)
+pprint.pprint(idg)
+
+"""
