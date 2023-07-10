@@ -63,19 +63,6 @@ class FutureDataGetter:
         ticker_data = self.__get_futures_ticker()
         if ticker_data is not None:
             return {
-                'bidPrice': ticker_data['bidPrice'],
-                'askPrice': ticker_data['askPrice']
+                'bidPrice': float(ticker_data['bidPrice']),
+                'askPrice': float(ticker_data['askPrice'])
             }
-
-#dg = FutureDataGetter().get_book_info()
-#print(dg)
-"""
-dg = FutureDataGetter()
-pdg = dg.get_info_period()
-idg = dg.get_info()
-
-print(len(pdg))
-pprint.pprint(pdg)
-pprint.pprint(idg)
-
-"""

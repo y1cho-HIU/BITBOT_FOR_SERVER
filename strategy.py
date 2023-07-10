@@ -16,7 +16,7 @@ class Strategy:
         :return: now_sma for strategy
         """
         close_list = [data['close'] for data in coin_data]
-        return round(sum(close_list) / len(close_list), 4)
+        return round(sum(close_list) / len(close_list), 6)
 
     @staticmethod
     def _calc_rrr(now_sma, env, rate):
@@ -51,8 +51,8 @@ class Strategy:
         now_sma = self.get_sma(coin_data)
         std_dev = self.get_std_dev(coin_data)
         now_price = coin_data[-1]['close']
-        env_up = round(now_sma + (std_dev * prv.env_weight), 4)
-        env_down = round(now_sma - (std_dev * prv.env_weight), 4)
+        env_up = round(now_sma + (std_dev * prv.env_weight), 6)
+        env_down = round(now_sma - (std_dev * prv.env_weight), 6)
 
         if self.now_position == pub.POS_OUT:
             if now_price <= env_down:

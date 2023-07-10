@@ -92,9 +92,17 @@ async def auto_trade():
         print(f'STOP:: {datetime.datetime.now()}')
 
 
+async def display_now_price():
+    price_info = dataGetter.get_book_info()
+    askPrice = price_info['askPrice']
+    bidPrice = price_info['bidPrice']
+    print(f'ASK: {askPrice} \t BID: {bidPrice}')
+
+
 async def display_trading():
     """ trading info """
     pprint.pprint(trading_info)
+    myAccount.display_trading_info()
 
 
 async def display_trading_info_in_class():
@@ -123,12 +131,17 @@ async def display_start_time():
 
 async def display_statistics():
     close_list = [data['close'] for data in coin_data]
-    sma = round(sum(close_list) / len(close_list), 4)
+    now_price = coin_data[-1]['close']
+    sma = round(sum(close_list) / len(close_list), 6)
     std_dev = round(statistics.stdev(close_list), 6)
-    env_up = round(sma + (std_dev * prv.env_weight), 4)
-    env_down = round(sma - (std_dev * prv.env_weight), 4)
+    env_up = round(sma + (std_dev * prv.env_weight), 6)
+    env_down = round(sma - (std_dev * prv.env_weight), 6)
+    rrr_up = round(env_up + (env_up - sma) / prv.rrr_rate, 6)
+    rrr_down = round(env_down - (sma - env_down) / prv.rrr_rate, 6)
 
-    print(f'SMA : {sma} \t 표준편차 : {std_dev} \t ENV_UP : {env_up} \t ENV_DOWN : {env_down}')
+    print(f'SMA : {sma} \t 표준편차 : {std_dev} \t NOW_PRICE : {now_price}')
+    print(f'ENV_UP : {env_up} \t ENV_DOWN : {env_down}')
+    print(f'RRR_UP : {rrr_up} \t RRR_DOWN : {rrr_down}')
 
 
 async def display_help():
@@ -138,6 +151,7 @@ async def display_help():
     print("# display statistic info\t\t --press stat or s")
     print("# display win rate info\t\t --press win or w")
     print("# display coin data info\t --press coin or c")
+    print("# display now price info\t -- press price or 1")
     print("# quit command \t\t\t --press quit or q")
 
 
@@ -156,9 +170,12 @@ async def check_keyboard_input():
             await display_coin_data()
         elif key == "time" or key == "t":
             await display_start_time()
+        elif key == "price" or key == "1":
+            await display_now_price()
         elif key == "help" or key == "h":
             await display_help()
         elif key == "quit" or key == "q":
+            await display_trading()
             asyncio.get_event_loop().stop()
 
 
@@ -169,4 +186,5 @@ async def run_together():
     await asyncio.gather(task_auto_trade, task_check_input)
 
 
-asyncio.run(run_together())
+if __name__ == "__main__":
+    asyncio.run(run_together())
